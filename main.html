@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InternPro v3.7 | ASKİ ÇPC Takip</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-main: #f1f5f9;
+            --sidebar: #ffffff;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --success: #10b981;
+            --danger: #ef4444;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; transition: all 0.2s ease; }
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg-main); color: var(--text-dark); line-height: 1.5; }
+        .hidden { display: none !important; }
+
+        /* Login */
+        #login-wrapper { height: 100vh; display: flex; align-items: center; justify-content: center; background: #0f172a; padding: 20px; }
+        .login-card { background: white; padding: 40px; border-radius: 24px; width: 100%; max-width: 400px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        .login-card h1 { font-weight: 800; font-size: 1.75rem; text-align: center; margin-bottom: 8px; color: #0f172a; }
+        
+        /* Layout */
+        header { background: white; height: 70px; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; border-bottom: 1px solid #e2e8f0; position: sticky; top: 0; z-index: 50; }
+        .app-container { display: flex; min-height: calc(100vh - 70px); }
+        aside { width: 300px; background: var(--sidebar); border-right: 1px solid #e2e8f0; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+        main { flex: 1; padding: 30px; overflow-y: auto; }
+
+        /* Sidebar Elements */
+        .intern-box { background: #f8fafc; border-radius: var(--radius); border: 1px solid #e2e8f0; padding: 15px; }
+        .intern-box h4 { font-size: 0.7rem; color: var(--primary); font-weight: 800; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.05em; }
+        .person-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.85rem; font-weight: 600; }
+        .person-item:last-child { border-bottom: none; }
+        
+        .badge { font-size: 0.65rem; padding: 3px 8px; border-radius: 6px; font-weight: 800; text-transform: uppercase; }
+        .badge-sef { background: #fee2e2; color: #991b1b; }
+        .badge-sorumlu { background: #e0e7ff; color: #3730a3; }
+        .badge-staj { background: #f1f5f9; color: #475569; }
+
+        /* Forms & Buttons */
+        label { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 10px 14px; border-radius: 8px; border: 1.5px solid #e2e8f0; font-family: inherit; font-size: 0.9rem; outline: none; margin-bottom: 5px; }
+        input:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+
+        .btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; border-radius: 10px; border: none; font-weight: 700; cursor: pointer; font-size: 0.85rem; width: 100%; margin-bottom: 8px; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+        .btn-outline { background: white; color: var(--text-dark); border: 1.5px solid #e2e8f0; }
+        .btn-outline:hover { background: #f8fafc; border-color: var(--primary); color: var(--primary); }
+        .btn-danger { background: #fff1f2; color: var(--danger); border: 1.5px solid #fecdd3; }
+        .btn-danger:hover { background: var(--danger); color: white; }
+
+        /* Table Style */
+        .card { background: white; border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+        table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+        th { text-align: left; padding: 10px; color: var(--text-muted); font-size: 0.7rem; font-weight: 800; text-transform: uppercase; }
+        td { background: white; padding: 16px; border-top: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+        td:first-child { border-left: 1px solid #f1f5f9; border-radius: 10px 0 0 10px; font-weight: 700; color: var(--primary); }
+        td:last-child { border-right: 1px solid #f1f5f9; border-radius: 0 10px 10px 0; }
+        
+        .editable { padding: 4px 8px; border-radius: 4px; outline: none; }
+        .editable[contenteditable="true"]:hover { background: #f1f5f9; cursor: pointer; }
+
+        @media (max-width: 1024px) {
+            .app-container { flex-direction: column; }
+            aside { width: 100%; border-right: none; border-bottom: 1px solid #e2e8f0; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="login-wrapper">
+    <div class="login-card">
+        <h1>ASKİ ÇPC v3.7</h1>
+        <p style="text-align:center; color:var(--text-muted); margin-bottom:30px; font-size:0.9rem">Bilgi İşlem Staj Yönetimi</p>
+        <div style="margin-bottom:15px">
+            <label>Kullanıcı Adı</label>
+            <input id="userInput" type="text" placeholder="Adınız">
+        </div>
+        <div style="margin-bottom:20px">
+            <label>Şifre</label>
+            <input id="passInput" type="password" placeholder="••••••••">
+        </div>
+        <button class="btn btn-primary" onclick="handleLogin()">Giriş Yap <i class="fas fa-arrow-right"></i></button>
+        <p id="loginError" style="color:var(--danger); text-align:center; font-size:0.8rem; margin-top:12px; font-weight:600"></p>
+    </div>
+</div>
+
+<div id="panel" class="hidden">
+    <header>
+        <div style="font-weight:900; font-size:1.25rem; color:#0f172a">ASKİ BİLGİ İŞLEM <span style="color:var(--primary)">ÇPC</span></div>
+        <div style="display:flex; align-items:center; gap:12px">
+            <div style="background:#ecfdf5; color:#065f46; padding:6px 14px; border-radius:100px; font-size:0.8rem; font-weight:700; display:flex; align-items:center; gap:6px; border:1px solid #a7f3d0">
+                <span style="width:7px; height:7px; background:#10b981; border-radius:50%; animation: pulse-green 2s infinite"></span>
+                <span id="roleDisplay"></span>
+            </div>
+            <button class="btn btn-outline" style="width:auto; margin-bottom:0; padding:8px 12px" onclick="location.reload()"><i class="fas fa-sign-out-alt"></i></button>
+        </div>
+    </header>
+
+    <div class="app-container">
+        <aside>
+            <div class="intern-box">
+                <h4><i class="fas fa-users-gear"></i> Grup Personeli</h4>
+                <div id="asideStajyerList"></div>
+            </div>
+
+            <div>
+                <label>GÖRÜNÜM</label>
+                <select id="viewSelect" onchange="renderApp()">
+                    <option value="table">Liste Görünümü</option>
+                    <option value="calendar">Takvim Görünümü</option>
+                    <option value="stats">Dağılım İstatistikleri</option>
+                </select>
+            </div>
+
+            <div>
+                <label>FİLTRELEME</label>
+                <select id="monthSelect" onchange="renderApp()"></select>
+                <select id="weekSelect" onchange="renderApp()"></select>
+            </div>
+
+            <div style="margin-top:auto">
+                <button class="btn btn-outline" onclick="exportExcel()"><i class="fas fa-file-excel"></i> Excel İndir</button>
+                <div id="adminControls" class="hidden">
+                    <button class="btn btn-primary" style="background:#1e293b" onclick="regenerateWeek()"><i class="fas fa-magic"></i> Haftayı Planla</button>
+                    <button class="btn btn-danger" onclick="resetData()"><i class="fas fa-redo"></i> Sistemi Sıfırla</button>
+                </div>
+            </div>
+        </aside>
+
+        <main>
+            <div id="tableView" class="card">
+                <div style="overflow-x:auto">
+                    <table>
+                        <thead>
+                            <tr><th>Tarih</th><th>Gün</th><th>Sabah (09:00 - 12:00)</th><th>Öğle (13:00 - 17:00)</th></tr>
+                        </thead>
+                        <tbody id="tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="calendarView" class="hidden">
+                <div id="calendarGrid" class="calendar-grid"></div>
+            </div>
+            <div id="statsView" class="hidden card"></div>
+        </main>
+    </div>
+</div>
+
+<script>
+const CONFIG = {
+    users: {
+        "burhanmizrak": { pass: "Mzk78Xn2", role: "admin", name: "Burhan Mızrak (Şef)" },
+        "naimkucuk": { pass: "fb1138d5", role: "admin", name: "Naim (Sorumlu Stajyer)" },
+        "kubra": { pass: "Kb_44wR1", role: "viewer", name: "Kübra" },
+        "eren": { pass: "Er_22tP9", role: "viewer", name: "Eren" },
+        "ibrahim": { pass: "Ib_88kM3", role: "viewer", name: "İbrahim" },
+        "efebingol": { pass: "Eb_11sV7", role: "viewer", name: "Efe B." },
+        "menekse": { pass: "Mn_55zB2", role: "viewer", name: "Menekşe" },
+        "utku": { pass: "Ut_77xC4", role: "viewer", name: "Utku" },
+        "yagmur": { pass: "Yg_33nL8", role: "viewer", name: "Yağmur" },
+        "nisa": { pass: "Ns_66jH5", role: "viewer", name: "Nisa" },
+        "efearslan": { pass: "Ea_99qG6", role: "viewer", name: "Efe A." }
+    },
+    students: ["Kübra", "Eren", "İbrahim", "Efe B.", "Menekşe", "Utku", "Yağmur", "Nisa", "Naim", "Efe A."],
+    forbidden: ["Naim", "Yağmur"],
+    days: ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"],
+    startDate: "2025-09-01",
+    endDate: "2026-06-30"
+};
+
+let currentUser = null;
+let db = [];
+
+function handleLogin() {
+    const u = document.getElementById("userInput").value.trim().toLowerCase();
+    const p = document.getElementById("passInput").value.trim();
+    if(CONFIG.users[u] && CONFIG.users[u].pass === p) {
+        currentUser = CONFIG.users[u];
+        document.getElementById("login-wrapper").style.display = "none";
+        document.getElementById("panel").classList.remove("hidden");
+        document.getElementById("roleDisplay").innerText = currentUser.name;
+        if(currentUser.role === "admin") document.getElementById("adminControls").classList.remove("hidden");
+        
+        const listDiv = document.getElementById("asideStajyerList");
+        listDiv.innerHTML = `<div class="person-item">Burhan Mızrak <span class="badge badge-sef">Şef</span></div>`;
+        listDiv.innerHTML += `<div class="person-item">Naim <span class="badge badge-sorumlu">Sorumlu</span></div>`;
+        CONFIG.students.filter(s => s !== "Naim").sort((a,b) => a.localeCompare(b,'tr')).forEach(s => {
+            listDiv.innerHTML += `<div class="person-item">${s} <span class="badge badge-staj">Stajyer</span></div>`;
+        });
+        initApp();
+    } else { document.getElementById("loginError").innerText = "Hatalı Giriş!"; }
+}
+
+function initApp() {
+    const local = localStorage.getItem("aski_v37_db");
+    if(local) db = JSON.parse(local); else generateInitialData();
+    populateFilters(); renderApp();
+}
+
+function getSmartAssignment(tempDB) {
+    let counts = {}; CONFIG.students.forEach(s => counts[s] = 0);
+    tempDB.forEach(row => [...row.morning.split('&'), ...row.afternoon.split('&')].forEach(n => { let name = n.trim(); if(counts[name] !== undefined) counts[name]++; }));
+    
+    const findPair = (pool) => {
+        pool.sort((a,b) => counts[a] - counts[b] || Math.random() - 0.5);
+        let p1 = pool[0], p2 = null;
+        for(let i=1; i < pool.length; i++) { if(!(CONFIG.forbidden.includes(p1) && CONFIG.forbidden.includes(pool[i]))) { p2 = pool[i]; break; } }
+        if(!p2) p2 = pool[1]; return [p1, p2];
+    };
+    let m = findPair([...CONFIG.students]);
+    let a = findPair(CONFIG.students.filter(s => !m.includes(s)));
+    return [...m, ...a];
+}
+
+function generateInitialData() {
+    let t = []; let d = new Date(CONFIG.startDate);
+    while(d <= new Date(CONFIG.endDate)) {
+        if([3,4,5].includes(d.getDay())) {
+            const list = getSmartAssignment(t);
+            t.push({ id: d.getTime(), date: d.toISOString().split('T')[0], morning: `${list[0]} & ${list[1]}`, afternoon: `${list[2]} & ${list[3]}` });
+        }
+        d.setDate(d.getDate()+1);
+    }
+    db = t; saveData();
+}
+
+function saveData() { localStorage.setItem("aski_v37_db", JSON.stringify(db)); }
+
+function renderApp() {
+    const view = document.getElementById("viewSelect").value;
+    const data = getFilteredData();
+    ["tableView", "calendarView", "statsView"].forEach(v => document.getElementById(v).classList.add("hidden"));
+    if(view === "table") renderTable(data);
+    else if(view === "calendar") renderCalendar(data);
+    else if(view === "stats") renderStats(data);
+}
+
+function renderTable(data) {
+    const tbody = document.getElementById("tbody");
+    document.getElementById("tableView").classList.remove("hidden");
+    tbody.innerHTML = "";
+    data.forEach(row => {
+        const d = new Date(row.date);
+        const canEdit = currentUser.role === "admin" ? 'contenteditable="true"' : '';
+        tbody.innerHTML += `<tr>
+            <td>${d.toLocaleDateString("tr-TR")}</td>
+            <td style="font-weight:600">${CONFIG.days[d.getDay()]}</td>
+            <td><div class="editable" ${canEdit} onblur="updateCell(${row.id},'morning',this.innerText)">${row.morning}</div></td>
+            <td><div class="editable" ${canEdit} onblur="updateCell(${row.id},'afternoon',this.innerText)">${row.afternoon}</div></td>
+        </tr>`;
+    });
+}
+
+function renderCalendar(data) {
+    const grid = document.getElementById("calendarGrid");
+    document.getElementById("calendarView").classList.remove("hidden");
+    grid.innerHTML = "";
+    data.forEach(row => {
+        const d = new Date(row.date);
+        grid.innerHTML += `<div class="cal-day-card">
+            <div style="display:flex; justify-content:space-between"><strong>${d.getDate()}</strong><span style="font-size:0.75rem">${CONFIG.days[d.getDay()]}</span></div>
+            <div style="font-size:0.8rem; margin-top:10px">☀️ ${row.morning}</div>
+            <div style="font-size:0.8rem">🌤️ ${row.afternoon}</div>
+        </div>`;
+    });
+}
+
+function renderStats(data) {
+    const container = document.getElementById("statsView");
+    container.classList.remove("hidden");
+    let c = {}; CONFIG.students.forEach(s => c[s] = 0);
+    db.forEach(row => [...row.morning.split('&'), ...row.afternoon.split('&')].forEach(n => { let name = n.trim(); if(c[name] !== undefined) c[name]++; }));
+    const sorted = Object.entries(c).sort((a,b) => b[1] - a[1]);
+    container.innerHTML = "<h3>📊 Toplam Görev Dağılımı</h3>";
+    sorted.forEach(([name, count]) => {
+        const p = (count / (sorted[0][1] || 1)) * 100;
+        container.innerHTML += `<div style="margin-bottom:12px"><span>${name} (${count})</span><div style="height:8px; background:#e2e8f0; border-radius:10px; overflow:hidden; margin-top:5px"><div style="width:${p}%; height:100%; background:var(--primary)"></div></div></div>`;
+    });
+}
+
+function populateFilters() {
+    const mS = document.getElementById("monthSelect");
+    const months = [...new Set(db.map(x => x.date.substring(0, 7)))].sort();
+    mS.innerHTML = '<option value="">Tüm Zamanlar</option>';
+    months.forEach(m => { mS.innerHTML += `<option value="${m}">${new Date(m + "-01").toLocaleDateString('tr-TR', {year:'numeric', month:'long'})}</option>`; });
+    const wS = document.getElementById("weekSelect");
+    wS.innerHTML = '<option value="">Hafta Seç</option>';
+    for(let i=1; i<=53; i++) wS.innerHTML += `<option value="${i}">${i}. Hafta</option>`;
+}
+
+function getFilteredData() {
+    const mF = document.getElementById("monthSelect").value, wF = document.getElementById("weekSelect").value;
+    return db.filter(item => {
+        if(mF && !item.date.startsWith(mF)) return false;
+        if(wF && getWeekNumber(item.date) != wF) return false;
+        return true;
+    });
+}
+
+function getWeekNumber(dStr) {
+    const d = new Date(dStr); d.setHours(0,0,0,0); d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+    return Math.ceil((((d - new Date(d.getFullYear(),0,1)) / 8.64e7) + 1) / 7);
+}
+
+function updateCell(id, f, v) { const i = db.findIndex(x => x.id === id); if(i > -1) { db[i][f] = v; saveData(); } }
+
+function regenerateWeek() {
+    const w = document.getElementById("weekSelect").value;
+    if(!w) return alert("Hafta seç!");
+    db.forEach(row => { if(getWeekNumber(row.date) == w) { const list = getSmartAssignment(db.filter(x => getWeekNumber(x.date) != w)); row.morning = `${list[0]} & ${list[1]}`; row.afternoon = `${list[2]} & ${list[3]}`; } });
+    saveData(); renderApp();
+}
+
+function resetData() { if(confirm("Sıfırlansın mı?")) { localStorage.removeItem("aski_v37_db"); location.reload(); } }
+
+function exportExcel() {
+    let csv = "\uFEFFTarih;Gün;Sabah;Öğle\n";
+    getFilteredData().forEach(r => { csv += `${r.date};${CONFIG.days[new Date(r.date).getDay()]};${r.morning};${r.afternoon}\n`; });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = "Schedule.csv"; link.click();
+}
+
+document.addEventListener('keydown', (e) => { if(e.key === 'Enter' && !document.getElementById('login-wrapper').classList.contains('hidden')) handleLogin(); });
+</script>
+</body>
+</html>
